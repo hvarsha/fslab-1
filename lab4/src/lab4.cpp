@@ -6,186 +6,134 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+
 #include<iostream>
-#include<vector>
+#include<sstream>
+#include<string>
 #include<fstream>
-#include<sstream>
-#include<unistd.h>
-#include<sys/types.h>
-#include<sstream>
 #include<stdlib.h>
-#include<fcntl.h>
 using namespace std;
-vector<int> rrn;
-int rsize=0;
-class Studentrecord{
-    string name;
-    string usn;
-    string branch;
-    int sem;
-    string buffer;
-    public:
-        void read()
-        {
-           cin.clear();
-           cin.ignore(255,'\n');
-           cout<<"enter the name :"<<endl;
-           getline(cin,name);
-           cout<<"enter the usn :"<<endl;
-           cin>>usn;
-           cin.clear();
-           cin.ignore(255,'\n');
-           cout<<"enter the branch :"<<endl;
-           getline(cin,branch);
-           cout<<"enter the semester :"<<endl;
-           cin>>sem;
-           cin.clear();
-           cin.ignore(255,'\n');
-           cout<<endl;
-        }
-        int pack()
-        {
-          string sem1;
-		string temp;
-		stringstream out;
-		out<<sem;
-		sem1=out.str();
-		temp=usn+'|'+name+'|'+branch+'|'+sem1+'$';
-		cout<<temp<<endl;
-		buffer=temp;
-               int a=buffer.size();
-               return a;
-        }
-        int write()
+class student
+{
+	string usn,name,branch,sem,buffer;
+public:
+	void readfromconsole()
 	{
-		fstream fp1;
-		fp1.open("data2.txt",ios::out|ios::app);
-		fp1<<buffer;
-        int pos=fp1.tellp();
-        cout<<"pos:"<<pos<<endl;
-        fp1.close();
-        int len=buffer.size();
-        rrn.push_back(pos-len);
-        rsize++;
-        cout<<"rsize:"<<rsize<<endl;
-        cout<<"content rrn:"<<rrn[rsize-1];
-        return pos;
+		cin.clear();
+		cin.ignore(255,'\n');
+		cout<<"Enter the name"<<endl;
+		getline(cin,name);
+		cout<<"Enter the usn"<<endl;
+		cin>>usn;
+		cin.clear();
+		cin.ignore(255,'\n');
+		cout<<"Enter the branch"<<endl;
+		cin>>branch;
+		cout<<"Enter the semester"<<endl;
+		cin>>sem;
+
 	}
-        void search(int recno)
-        {
-            fstream fp1;
-            int a=rrn[recno-1];
-            cout<<"urrent record position : "<<a<<endl;
-            int b=rrn[recno];
-            cout<<"next record position : "<<b<<endl;
-            int len=b-a;
-            //cout<<"length of the record : "<<endl;
-            fp1.open("data2.txt",ios::in);
-            fp1.seekp(a,ios::beg);
-            getline(fp1,buffer,'$');
-            cout<<"Student record is :"<<buffer<<endl;
-           // unpack(len);
-            fp1.close();
-        }
-        /*void unpack(int len)
-        {
-            string s;
-            int i=0;
-            usn.erase();
-            while(buffer[i]!='|')
-            {
-            	usn+=buffer[i];
-            	i++;
-            }
-            i++;
-            name.erase();
-            while(buffer[i]!='|')
-            {
-            	name+=buffer[i];
-            	i++;
-            }
-            i++;
-            branch.erase();
-            while(buffer[i]!='|')
-            {
-		branch+=buffer[i];
-		i++;
-            }
-            i++;
-            sem=0;
-            while(i!=len)
-            {
-            	s=buffer[i];
-            	stringstream convert(s);
-		convert>>sem;
-		i++;
-            }
-            cout<<"usn is :"<<usn<<endl;
-            cout<<"name is :"<<name<<endl;
-            cout<<"branch is :"<<branch<<endl;
-            cout<<"sem is :"<<sem<<endl;
-	    }*/
-};
+	void display_data();
+	void pack();
+	void unpack(int);
+}s;
+int rrn[100],count = 0;
+fstream fp;
+void find_rrn();
+void search();
+void error(int);
+void find_rrn()
+{
+	int pos;
+	string buffer;
+	fp.open("data.txt",ios::in);
+	if(!fp)
+		error(1);
+	while(fp)
+	{
+		pos = fp.tellg();
+		getline(fp,buffer);
+		if(buffer.length()==0)
+			continue;
+		rrn[++count]=pos;
+	}
+	fp.close();
+}
+void student::pack()
+{
+	int pos = fp.tellg();
+	string buffer=usn+'|'+name +'|'+branch +'|'+sem+'$';
+	fp<<buffer<<endl;
+	cout<<endl<<buffer;
+	rrn[++count]=pos;
+}
+void student::unpack(int pos)
+{
+	fp.seekg(pos, ios::beg);
+	getline(fp, usn, '|');
+	getline(fp, name, '|');
+	getline(fp, branch, '|');
+	getline(fp, sem, '$');
+}
+void student::display_data()
+{
+	cout<<"\nName: "<<name<<"\nusn: "<<usn<<"\nbranch: "<<branch<<"\nsem: "<<sem<<endl;
+}
+void search()
+{
+	int rrn_srch, pos;
+	cout<<"Enter the RRN of the record to be found:\n";
+	cin>>rrn_srch;
+	if(rrn_srch>count||rrn_srch<1)
+	{
+		error(2);
+		return;
+	}
+	cout<<"Record Found:\n";
+	pos=rrn[rrn_srch];
+	cout<<pos;
+	fp.open("data.txt", ios::in);
+	if(!fp)
+		error(1);
+	s.unpack(pos);
+	fp.close();
+	s.display_data();
+}
+void error(int error)
+{
+	switch(error)
+	{
+	case 1: cout<<"Unable to open the record File\n";
+	exit(0);
+	case 2:	cout<<"Invalid RRN\n";
+	return;
+	}
+}
 int main()
 {
-    fstream fp1;
-    int choice,rec;
-    Studentrecord s;
-    while(1)
-    {
-    cout<<"Enter your choice :\n1) Insert\n2) Search\n3) exit"<<endl;
-    cin>>choice;
-    switch(choice)
-    {
-        case 1:
-        {
-            string s1;
-            //fp1.open("data2.txt",ios::out);
-            //fp1.seekg(0,ios::beg);
-            //fp1<<rsize;
-            /*s1=fp1.get();
-            cout<<"s1:"<<s1<<endl;*/
-            /*stringstream convert(s1);
-            convert>>rsize;
-            cout<<"initial vlue of rsize :"<<rsize<<endl;
-            fp1.close();
-            fp1.open("data2.txt");
-            fp1.seekp(0,ios::beg);
-            fp1<<rsize;
-            fp1.close();*/
-            s.read();
-            int len=s.pack();
-            int pos=s.write();
-            cout<<"back"<<endl;
+	int choice;
+	fp.open("data.txt",ios::out|ios::app);
+	fp.close();
+	find_rrn();
+	while(1)
+	{
+		cout<<"1. Insert a record\n2. Search for record using RRN\n3. Exit\nEnter Choice : ";
+		cin>>choice;
+		switch(choice)
+		{
+		case 1:
+			s.readfromconsole();
 
-            //rrn.push_back(pos-len);
-
-            /*cout<<"rsize is:"<<rsize<<endl;
-            for(int i=rsize;i>=0;i--)
-                cout<<"element"<<i<<"is : "<<rrn[i]<<endl;
-            rsize++;
-            cout<<"value of rsize is : "<<rsize<<endl;*/
-           // fp1.close();
-            /*fp1.open("data2.txt");
-            fp1.seekp(0,ios::beg);
-            fp1<<rsize;
-            fp1.close();*/
-        }
-        break;
-        case 2:
-        {
-            cout<<"enter the record number to be shown"<<endl;
-            cin>>rec;
-            s.search(rec);
-        }
-        break;
-        case 3:
-        {
-        	exit(0);
-        }
-        break;
-        default: cout<<"invalid option chosen"<<endl;
-    }
-    }
-    return 0;
+			fp.open("data.txt",ios::out|ios::app);
+			if(!fp)
+				error(1);
+			s.pack();
+			fp.close();
+			break;
+		case 2:
+			search();
+			break;
+		default: exit(0);
+		}
+	}
 }
